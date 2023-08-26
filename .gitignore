@@ -1,0 +1,6 @@
+config/
+data/
+eln-cache/
+elpa/
+straight/
+*.elc
