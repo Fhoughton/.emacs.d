@@ -210,6 +210,13 @@ For language server protocol, allows better processing of languages
   (use-package lsp-mode)
 #+end_src
 
+*** Company Mode
+For in buffer suggestions for code completion
+
+#+begin_src emacs-lisp
+  (use-package company)
+  (add-hook 'after-init-hook 'global-company-mode)
+#+end_src
 
 * Org Mode
 *** Org Roam
