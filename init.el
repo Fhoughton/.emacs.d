@@ -1,49 +1,70 @@
-;; Set the home directory
-(setq user-emacs-directory "~/.emacs.d/")
-(setq modes-config-directory (concat user-emacs-directory "modes/"))
+;; Basic function to allow reloading of config
+(defun reload-config ()
+  (interactive)
+  (load-file "~/.emacs.d/init.el"))
 
-;; Disable native comp warnings
-(setq native-comp-async-report-warnings-errors nil)
+;; Bootstrap straight.el
+(defvar bootstrap-version)
+(let ((bootstrap-file
+ (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+(bootstrap-version 6))
+(unless (file-exists-p bootstrap-file)
+(with-current-buffer
+  (url-retrieve-synchronously
+   "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+   'silent 'inhibit-cookies)
+(goto-char (point-max))
+(eval-print-last-sexp)))
+(load bootstrap-file nil 'nomessage))
 
-;; Write a function to handle file loading
-(defun load-user-file (file)
-	(interactive)
-	"Load a file from the user emacs directory"
-	(load-file (expand-file-name file user-emacs-directory)))
+;; Then configure it
+(setq straight-use-package-by-default t
+	use-package-always-defer t
+	straight-cache-autoloads t
+	straight-vc-git-default-clone-depth 1
+	straight-check-for-modifications '(find-when-checking)
+	package-enable-at-startup nil
+	vc-follow-symlinks t)
 
-;; Load the other config files
-(load-user-file "packages.el") ; Package management
+;; Get use-package
+(straight-use-package 'use-package)
 
-;; Disable home littering
-(setq no-littering-etc-directory
-      (expand-file-name "config/" user-emacs-directory))
-(setq no-littering-var-directory
-      (expand-file-name "data/" user-emacs-directory))
-(require 'no-littering)
+;; Configure use-package to use straight.el by default
+(use-package straight
+  :custom
+  (straight-use-package-by-default t))
 
-;; Load the rest of the config files
-(load-user-file "user-functions.el") ; Custom functions
-(load-user-file "user-customisations.el") ; Visual customisations
+;; Load org
+(use-package org)
 
-(defun load-files-in-directory (directory)
-  "Load all Emacs Lisp files in the given DIRECTORY."
-  (dolist (file (directory-files directory t "\\.el$"))
-    (when (file-regular-p file)
-      (load file))))
+;; Configure org-babel
+(org-babel-do-load-languages
+     'org-babel-load-languages
+     '((emacs-lisp . nil)))
 
-;; Load the mode configs
-(load-files-in-directory modes-config-directory)
+;; Load the literate config
+(defun tangle-config ()
+  "Tangle 'config.org' if it's newer than `init.el'."
+  (interactive)
+  (let ((org-file (expand-file-name "~/.emacs.d/config.org"))
+        (el-file (expand-file-name "~/.emacs.d/config.el")))
+    (when (or (not (file-exists-p el-file))
+              (file-newer-than-file-p org-file el-file))
+      (org-babel-tangle-file org-file el-file "emacs-lisp"))))
 
-;; Custom set variables
+;; Automatically tangle on Emacs startup
+;;(add-hook 'after-init-hook 'tangle-config)
+(tangle-config)
+
+;; Load the config.el file generated from config.org
+(load "~/.emacs.d/config.el")
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("f1b2de4bc88d1120782b0417fe97f97cc9ac7c5798282087d4d1d9290e3193bb" "435d18aff74c0e98dae5e32555237eb8391faaafe1582b6d4be867b8975dba29" "18624b2da7749af193a4eeaa7be1dc2abe94a97a8562ba69f5ee0f06d6dd156e" "aeb5508a548f1716142142095013b6317de5869418c91b16d75ce4043c35eb2b" "b273d59159ef19d49ddb6176eee2b3283dbe1afbed931d7affae4508e560eac1" default))
- '(package-selected-packages
-   '(polymode org-babel-eval-in-repl use-package expand-region)))
+ '(package-selected-packages '(evil org-roam org-modern ivy)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

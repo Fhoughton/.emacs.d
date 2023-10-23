@@ -1,0 +1,240 @@
+#+PROPERTY: header-args :tangle config.el
+
+TODO: Fix recentf not finding the save list along with dashboard
+
+* Optimisation and startup
+Since emacs startup can be painfully slow we start by optimising it as much as possible
+
+*** Low-hanging Speedup Fruits
+#+begin_src emacs-lisp
+  ;; Resizing the Emacs frame can be a terribly expensive part of changing the
+  ;; font. By inhibiting this, we easily halve startup times with fonts that are
+  ;; larger than the system default.
+  (setq frame-inhibit-implied-resize t)
+#+end_src
+
+*** Reduce GC
+Following the [[https://github.com/hlissner/doom-emacs/blob/develop/docs/faq.org#how-does-doom-start-up-so-quickly][Doom-Emacs FAQ]] we max the garbage collection threshold on startup, and reset it to the original value after.
+
+#+begin_src emacs-lisp
+;; max memory available for gc on startup
+(defvar me/gc-cons-threshold 16777216) ;; raise the gc threshold to 16mb to prevent lag
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.6)
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq gc-cons-threshold me/gc-cons-threshold
+                  gc-cons-percentage 0.1)))
+
+;; max memory available for gc when opening minibuffer
+(defun me/defer-garbage-collection-h ()
+  (setq gc-cons-threshold most-positive-fixnum))
+
+(defun me/restore-garbage-collection-h ()
+  ;; defer it so that commands launched immediately after
+  (run-at-time
+   1 nil (lambda () (setq gc-cons-threshold me/gc-cons-threshold))))
+
+(add-hook 'minibuffer-setup-hook #'me/defer-garbage-collection-h)
+(add-hook 'minibuffer-exit-hook #'me/restore-garbage-collection-h)
+(setq garbage-collection-messages nil) ;; was t but I don't want to hear about gc, I want to write code and edit documents
+#+end_src
+
+*** Temporarily avoid special handling of files
+We also set the ~file-name-handler-alist~ to an empty list, and reset it after Emacs has finished initializing.
+
+#+begin_src emacs-lisp
+(defvar me/-file-name-handler-alist file-name-handler-alist)
+(setq file-name-handler-alist nil)
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq file-name-handler-alist me/-file-name-handler-alist)))
+#+end_src
+
+*** Don't compact font caches
+This takes time and slows startup when using cool fonts, which we do for org mode
+
+#+begin_src emacs-lisp
+(setq inhibit-compacting-font-caches t)
+#+end_src
+
+*** Improve I/O
+Optimizations for improving I/O performance. Increase max bytes read from a sub-process in a single op (Emacs 27+)
+
+#+begin_src emacs-lisp
+(when (boundp 'read-process-output-max)
+  ;; 1MB in bytes, default 4096 bytes
+  (setq read-process-output-max 1048576))
+#+end_src
+
+* Changing emacs defaults
+*** Better-defaults package and my better defaults
+Sane defaults for emacs to be less annoying
+
+#+begin_src emacs-lisp
+  ;; Track recently opened files
+  (recentf-mode 1)
+  (setq recentf-max-menu-items 25)
+  (setq recentf-max-saved-items 25)
+
+  ;; Save recentf list on Emacs exit
+  (add-hook 'kill-emacs-hook
+          (lambda ()
+            (recentf-save-list)))
+
+  ;; Get better-defaults for lots of sane options
+  (use-package better-defaults
+    :straight (better-defaults :type git :host nil :repo "https://git.sr.ht/~technomancy/better-defaults")
+    :demand t)
+
+  ;; Disable splash screen and startup message to allow dashboard to take over
+  (setq inhibit-startup-message t) 
+  (setq initial-scratch-message nil)
+
+  ;; Make the splash screen show recent files and stuff
+  (use-package dashboard
+    :config
+    (setq dashboard-center-content t))
+
+  (dashboard-setup-startup-hook)
+
+  (setq
+      ;; always follow symlinks when opening files
+      vc-follow-symlinks t
+
+      ;; hopefully all themes we install are safe
+      custom-safe-themes t
+
+      ;; simple lock/backup file management
+      create-lockfiles nil
+      backup-by-copying t
+      delete-old-versions t
+
+      ;; when quiting emacs, just kill processes
+      confirm-kill-processes nil
+
+      ;; ask if local variables are safe once.
+      enable-local-variables t
+
+      ;; life is too short to type yes or no
+      use-short-answers t
+
+      ;; clean up dired buffers
+      dired-kill-when-opening-new-dired-buffer t)
+
+  ;; always highlight code
+  (global-font-lock-mode 1)
+
+  ;; refresh a buffer if changed on disk
+  (global-auto-revert-mode 1)
+
+  ;; Maximize emacs on startup
+  (add-hook 'window-setup-hook 'toggle-frame-maximized t)
+#+end_src
+
+*** Garbage Collector Magic Hack (gcmh)
+A package that only performs garbage collection when emacs isn't doing stuff so the user doesn't know it's happening
+
+#+begin_src emacs-lisp
+(use-package gcmh
+  :demand t
+  :config
+  (gcmh-mode 1))
+#+end_src
+
+*** UTF-8 by default, it's just sane
+#+begin_src emacs-lisp
+  (prefer-coding-system 'utf-8)
+  (set-default-coding-systems 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (set-file-name-coding-system 'utf-8)
+  (set-clipboard-coding-system 'utf-8)
+#+end_src
+
+*** No-littering
+Keep ~/.emacs.d clean since emacs likes to litter in it
+
+#+begin_src emacs-lisp
+(use-package no-littering
+  :demand t
+  :config
+  (setq
+   auto-save-file-name-transforms
+   `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
+#+end_src
+
+*** Make emacs prettier
+/A E S T H E T I C/
+
+#+begin_src emacs-lisp
+(setq ring-bell-function 'ignore ; no bell
+      ;; better scrolling
+      scroll-conservatively 101
+      scroll-preserve-screen-position 1
+      mouse-wheel-follow-mouse t
+      pixel-scroll-precision-use-momentum t)
+(setq-default line-spacing 1)
+#+end_src
+
+* Making emacs a better editor
+*** Evil Mode
+Vim keybinds for emacs, useful for fast editing
+
+#+begin_src emacs-lisp
+  (use-package evil)
+
+  (evil-mode 1)
+#+end_src
+
+*** Ivy
+Better search, enough said
+
+#+begin_src emacs-lisp
+  (use-package ivy)
+  (ivy-mode)
+#+end_src
+
+*** Flycheck
+Code checking and error reporting
+
+#+begin_src emacs-lisp
+  (use-package flycheck)
+#+end_src
+
+*** LSP Mode
+For language server protocol, allows better processing of languages
+
+#+begin_src emacs-lisp
+  (use-package lsp-mode)
+#+end_src
+
+
+* Org Mode
+*** Org Roam
+For note taking in University
+
+#+begin_src emacs-lisp
+  (use-package org-roam
+    :bind (("C-c n f" . org-roam-node-find)	    
+           (:map org-mode-map
+                 (("C-c n i" . org-roam-node-insert)))))
+
+  (use-package org-contrib)
+
+  (setq org-roam-directory "~/Documents/School/OrgRoam") ;; Put all our notes in with the rest of my uni stuff
+  (org-roam-db-autosync-mode) ;; Automatically keep the database updated when we add and edit nodes
+#+end_src
+
+* Programming Languages
+
+*** Nim
+The one true programming language
+
+#+begin_src emacs-lisp
+  (use-package flycheck-nimsuggest)
+  (use-package nim-mode
+       :hook ((nim-mode . nimsuggest-mode)
+       (nim-mode . lsp)))
+#+end_src
