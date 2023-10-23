@@ -218,6 +218,25 @@ For in buffer suggestions for code completion
   (add-hook 'after-init-hook 'global-company-mode)
 #+end_src
 
+*** Yasnippet
+Code snippets, generally I'm not a fan but with some newer languages with mixed syntax types it can prevent bugs
+
+e.g. in nim a code block can be colon delimited but so are types
+
+#+begin_src nim
+  proc foo(x: int) : float =
+    if x == 10:
+      return 0.0
+    else:
+      return 1.0
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package yasnippet)
+  (use-package yasnippet-snippets) ;; Default snippets, supports nim too which is the main reason for its need
+  (yas-global-mode 1)
+#+end_src
+
 * Org Mode
 *** Org Roam
 For note taking in University
