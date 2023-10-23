@@ -238,6 +238,27 @@ e.g. in nim a code block can be colon delimited but so are types
 #+end_src
 
 * Org Mode
+*** Image handling
+Add image pasting and automatic pasting to org mode to make it easier to work with
+
+#+begin_src emacs-lisp
+  (setq org-startup-with-inline-images t) ;; Inline images by default 
+
+  ;; Pasting images from clipboard
+  (use-package org-download
+    :after org
+    :defer nil
+    :custom
+    (org-download-method 'directory)
+    (org-download-image-dir "~/Documents/School/OrgRoam")
+    (org-download-heading-lvl 0)
+    (org-download-timestamp "org_%Y%m%d-%H%M%S_")
+    (org-download-screenshot-method "xclip -selection clipboard -t image/png -o > '%s'")
+    :bind ((:map org-mode-map (("C-c p". org-download-screenshot)))))
+
+  (setq org-download-annotate-function (lambda (link) (previous-line 1) "")) ; Bad hack to remove the downloaded tag from images org-download handles
+#+end_src
+
 *** Org Roam
 For note taking in University
 
