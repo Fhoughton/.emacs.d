@@ -130,6 +130,9 @@ Sane defaults for emacs to be less annoying
 
   ;; Maximize emacs on startup
   (add-hook 'window-setup-hook 'toggle-frame-maximized t)
+
+  ;; Always show column number
+  (column-number-mode 1)
 #+end_src
 
 *** Garbage Collector Magic Hack (gcmh)
