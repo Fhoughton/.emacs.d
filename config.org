@@ -240,6 +240,14 @@ e.g. in nim a code block can be colon delimited but so are types
   (yas-global-mode 1)
 #+end_src
 
+*** Dumb Jump
+A simple setup to jump to the definition of symbols whilst programming
+
+#+begin_src emacs-lisp
+  (use-package dumb-jump)
+  (global-set-key (kbd "C-c C-g") 'dumb-jump-go)
+#+end_src
+
 * Org Mode
 *** Image handling
 Add image pasting and automatic pasting to org mode to make it easier to work with
