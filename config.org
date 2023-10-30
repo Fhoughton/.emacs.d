@@ -260,6 +260,20 @@ Add image pasting and automatic pasting to org mode to make it easier to work wi
     :bind ((:map org-mode-map (("C-c p". org-download-screenshot)))))
 
   (setq org-download-annotate-function (lambda (link) (previous-line 1) "")) ; Bad hack to remove the downloaded tag from images org-download handles
+
+  ;; Pasting images from a file
+  (defun insert-image ()
+    "Interactively insert an image into an Org mode buffer."
+    (interactive)
+    (let ((image-file (read-file-name "Select an image file: ")))
+      (if (file-exists-p image-file)
+          (progn
+        	    (insert "#+attr_latex: :width 200px\n")
+            (insert (format "[[file:%s]]" image-file))
+            (org-display-inline-images))
+        (message "File not found: %s" image-file))))
+
+  (global-set-key (kbd "C-c i") 'insert-image)
 #+end_src
 
 *** Org Roam
