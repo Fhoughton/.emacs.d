@@ -204,6 +204,7 @@ Code checking and error reporting
 
 #+begin_src emacs-lisp
   (use-package flycheck)
+  (add-hook 'after-init-hook #'global-flycheck-mode)
 #+end_src
 
 *** LSP Mode
