@@ -250,6 +250,11 @@ A simple setup to jump to the definition of symbols whilst programming
 #+end_src
 
 * Org Mode
+*** Prettifying
+#+begin_src emacs-lisp
+  (setq org-pretty-entities 1) ;; Make org mode show symbols in a pretty way, used for latex style symbols like \leftarrow
+#+end_src
+
 *** Image handling
 Add image pasting and automatic pasting to org mode to make it easier to work with
 
