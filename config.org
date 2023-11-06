@@ -318,6 +318,24 @@ For note taking in University
   (setq org-roam-directory "~/Documents/School/OrgRoam") ;; Put all our notes in with the rest of my uni stuff
   (org-roam-db-autosync-mode) ;; Automatically keep the database updated when we add and edit nodes
 #+end_src
+
+*** Org skeletons
+#+begin_src emacs-lisp
+  (define-skeleton org-source-block
+    "Source block for an org mode document"
+    "Language for source block: "
+    "#+begin_src " str " \n"
+    "#+end_src"
+  )
+
+  (defhydra hydra-org-skeletons (:color blue)
+    "org-mode skeletons"
+    ("s" org-source-block "source block"))
+
+  
+  (global-set-key (kbd "C-c t") 'hydra-org-skeletons/body)
+#+end_src
+
 * Programming Languages
 
 *** Nim
