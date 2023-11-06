@@ -336,6 +336,11 @@ For note taking in University
   (global-set-key (kbd "C-c t") 'hydra-org-skeletons/body)
 #+end_src
 
+*** Org Drill
+#+begin_src emacs-lisp 
+  (use-package org-drill)
+#+end_src
+
 * Programming Languages
 
 *** Nim
