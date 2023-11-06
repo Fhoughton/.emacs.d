@@ -182,6 +182,20 @@ Keep ~/.emacs.d clean since emacs likes to litter in it
 #+end_src
 
 * Making emacs a better editor
+*** Hydra
+Makes complex keybinds give nice menus
+
+#+begin_src emacs-lisp
+  (use-package hydra)
+
+  (defhydra hydra-zoom ()
+    "zoom"
+    ("g" text-scale-increase "in")
+    ("l" text-scale-decrease "out"))
+
+  (global-set-key (kbd "C-c z") 'hydra-zoom/body)
+#+end_src
+
 *** Evil Mode
 Vim keybinds for emacs, useful for fast editing
 
@@ -241,14 +255,6 @@ e.g. in nim a code block can be colon delimited but so are types
   (yas-global-mode 1)
 #+end_src
 
-*** Dumb Jump
-A simple setup to jump to the definition of symbols whilst programming
-
-#+begin_src emacs-lisp
-  (use-package dumb-jump)
-  (global-set-key (kbd "C-c C-g") 'dumb-jump-go)
-#+end_src
-
 * Org Mode
 *** Prettifying
 #+begin_src emacs-lisp
@@ -270,8 +276,7 @@ Add image pasting and automatic pasting to org mode to make it easier to work wi
     (org-download-image-dir "~/Documents/School/OrgRoam")
     (org-download-heading-lvl 0)
     (org-download-timestamp "org_%Y%m%d-%H%M%S_")
-    (org-download-screenshot-method "xclip -selection clipboard -t image/png -o > '%s'")
-    :bind ((:map org-mode-map (("C-c p". org-download-screenshot)))))
+    (org-download-screenshot-method "xclip -selection clipboard -t image/png -o > '%s'"))
 
   (setq org-download-annotate-function (lambda (link) (previous-line 1) "")) ; Bad hack to remove the downloaded tag from images org-download handles
 
@@ -287,24 +292,32 @@ Add image pasting and automatic pasting to org mode to make it easier to work wi
             (org-display-inline-images))
         (message "File not found: %s" image-file))))
 
-  (global-set-key (kbd "C-c i") 'insert-image)
+  (defhydra hydra-org-images (:color blue)
+    "org mode images"
+    ("p" org-download-screenshot "paste from file")
+    ("i" insert-image "paste from clipboard"))
+
+  (global-set-key (kbd "C-c i") 'hydra-org-images/body)
 #+end_src
 
 *** Org Roam
 For note taking in University
 
 #+begin_src emacs-lisp
-  (use-package org-roam
-    :bind (("C-c n f" . org-roam-node-find)	    
-           (:map org-mode-map
-                 (("C-c n i" . org-roam-node-insert)))))
+  (use-package org-roam)
 
+  (defhydra hydra-org-roam (:color blue)
+    "org-roam nodes"
+    ("f" org-roam-node-find "find")
+    ("i" org-roam-node-insert "insert"))
+
+  (global-set-key (kbd "C-c n") 'hydra-org-roam/body)
+  
   (use-package org-contrib)
 
   (setq org-roam-directory "~/Documents/School/OrgRoam") ;; Put all our notes in with the rest of my uni stuff
   (org-roam-db-autosync-mode) ;; Automatically keep the database updated when we add and edit nodes
 #+end_src
-
 * Programming Languages
 
 *** Nim
