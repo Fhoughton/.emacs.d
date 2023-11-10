@@ -203,6 +203,7 @@ Vim keybinds for emacs, useful for fast editing
   (use-package evil)
 
   (evil-mode 1)
+  (evil-set-undo-system 'undo-redo)
 #+end_src
 
 *** Ivy
