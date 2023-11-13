@@ -260,6 +260,7 @@ e.g. in nim a code block can be colon delimited but so are types
 *** Prettifying
 #+begin_src emacs-lisp
   (setq org-pretty-entities 1) ;; Make org mode show symbols in a pretty way, used for latex style symbols like \leftarrow
+  (setq org-hide-emphasis-markers t) ;; Make org hide emphasis markers like _woah_
 #+end_src
 
 *** Image handling
