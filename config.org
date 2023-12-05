@@ -354,3 +354,9 @@ The one true programming language
        :hook ((nim-mode . nimsuggest-mode)
        (nim-mode . lsp)))
 #+end_src
+
+*** Haskell
+
+#+begin_src emacs-lisp
+  (use-package haskell-mode)
+#+end_src

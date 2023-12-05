@@ -3,6 +3,10 @@
   (interactive)
   (load-file "~/.emacs.d/init.el"))
 
+(defun load-config ()
+  (interactive)
+  (find-file "~/.emacs.d/config.org"))
+
 ;; Bootstrap straight.el
 (defvar bootstrap-version)
 (let ((bootstrap-file
