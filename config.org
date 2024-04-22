@@ -1,7 +1,5 @@
 #+PROPERTY: header-args :tangle config.el
 
-TODO: Fix recentf not finding the save list along with dashboard
-
 * Optimisation and startup
 Since emacs startup can be painfully slow we start by optimising it as much as possible
 
@@ -342,11 +340,9 @@ For note taking in University
   (use-package org-drill)
 #+end_src
 
-* Programming Languages
+* Niche Programming Language Support
 
 *** Nim
-The one true programming language
-
 #+begin_src emacs-lisp
   (use-package flycheck-nimsuggest)
   (use-package nim-mode
