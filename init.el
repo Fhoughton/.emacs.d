@@ -5,3 +5,4 @@
 ;; Load the components of the config
 (require 'theme)
 (require 'lsp)
+(require 'advanced-cua)
