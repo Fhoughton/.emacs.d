@@ -6,3 +6,4 @@
 (require 'theme)
 (require 'lsp)
 (require 'advanced-cua)
+(require 'compilation)
